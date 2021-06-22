@@ -4,7 +4,7 @@ on:
     tags:
       - "v*"
 env:
-  GH_USER: knqyf263
+  GH_USER: aqua-bot
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,24 +28,23 @@ jobs:
         run: |
           mkdir public
           tar -C bundle -czvf public/bundle.tar.gz .
-      - name: Deploy GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ env.GH_USER }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
       - name: Deploy the latest tag to GitHub Packages Container registry
         run: |
-          oras push ghcr.io/knqyf263/appshield:latest \
+          cd public
+          oras push ghcr.io/${{ github.repository }}:latest \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
-          public/bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
-      - name: Deploy the version tag to GitHub Packages Container registry
-        run: |
-          oras push ghcr.io/knqyf263/appshield:${{ env.GIT_TAG }} \
+          bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+          oras push ghcr.io/${{ github.repository }}:${{ env.GIT_TAG }} \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
-          public/bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+          bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

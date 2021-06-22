@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+env:
+  GH_USER: knqyf263
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Create directories
+        run: mkdir -p bundle/docker bundle/kubernetes 
+      - name: Copy manifest
+        run: |
+          cp .manifest bundle/
+          sed -i -e "s/\[GITHUB_SHA\]/${GITHUB_SHA}/" bundle/.manifest
+      - name: Copy Rego files
+        run: |
+          shopt -s globstar
+          cp docker/policies/*.rego bundle/docker
+          cp kubernetes/lib/*.rego kubernetes/policies/general/*.rego bundle/kubernetes
+      - name: Compress
+        run: |
+          mkdir public
+          tar -C bundle -czvf public/bundle.tar.gz .
+      - name: Deploy GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ env.GH_USER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy GitHub Container Registry
+        run: |
+          oras push ghcr.io/knqyf263/appshield:latest \
+          --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
+          bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

@@ -42,4 +42,4 @@ jobs:
         run: |
           oras push ghcr.io/knqyf263/appshield:latest \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
-          bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+          pubic/bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

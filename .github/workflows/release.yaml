@@ -1,9 +1,8 @@
 name: Release
-
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "v*"
 env:
   GH_USER: knqyf263
 jobs:
@@ -12,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Get the tag name
+        run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
       - name: Create directories
         run: mkdir -p bundle/docker bundle/kubernetes 
       - name: Copy manifest
@@ -38,8 +39,13 @@ jobs:
           registry: ghcr.io
           username: ${{ env.GH_USER }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Deploy GitHub Container Registry
+      - name: Deploy the latest tag to GitHub Packages Container registry
         run: |
           oras push ghcr.io/knqyf263/appshield:latest \
+          --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
+          public/bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+      - name: Deploy the version tag to GitHub Packages Container registry
+        run: |
+          oras push ghcr.io/knqyf263/appshield:${{ env.GIT_TAG }} \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
           public/bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

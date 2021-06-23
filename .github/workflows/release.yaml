@@ -49,7 +49,7 @@ jobs:
       - name: Deploy to GitHub Packages Container registry
         run: |
           cd public
-          tags = ("latest" ${{ env.RELEASE_VERSION}} ${{env.MINOR_VERSION }} ${{ env.MAJOR_VERSION }})
+          tags=(latest ${{ env.RELEASE_VERSION}} ${{env.MINOR_VERSION }} ${{ env.MAJOR_VERSION }})
           for tag in ${tags[@]}; do
               oras push ghcr.io/${{ github.repository }}:${tag} \
               --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \

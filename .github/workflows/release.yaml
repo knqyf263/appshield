@@ -11,8 +11,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Get the tag name
-        run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Get the semantic version
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Get the major version
+        run: |
+          echo "MAJOR_VERSION=$(echo ${RELEASE_VERSION} | cut -d. -f1)" >> $GITHUB_ENV
       - name: Create directories
         run: mkdir -p bundle/docker bundle/kubernetes 
       - name: Copy manifest
@@ -42,9 +46,18 @@ jobs:
       - name: Deploy to GitHub Packages Container registry
         run: |
           cd public
+
+          # latest
           oras push ghcr.io/${{ github.repository }}:latest \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
           bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
-          oras push ghcr.io/${{ github.repository }}:${{ env.GIT_TAG }} \
+
+          # semver (e.g. 1.0.2)
+          oras push ghcr.io/${{ github.repository }}:${{ env.RELEASE_VERSION }} \
+          --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
+          bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+
+          # major version (e.g. 1)
+          oras push ghcr.io/${{ github.repository }}:${{ env.MAJOR_VERSION }} \
           --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
           bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

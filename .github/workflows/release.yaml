@@ -50,7 +50,7 @@ jobs:
         run: |
           cd public
           tags = ("latest" ${{ env.RELEASE_VERSION}} ${{env.MINOR_VERSION }} ${{ env.MAJOR_VERSION }})
-          for tag in (); do
+          for tag in ${tags[@]}; do
               oras push ghcr.io/${{ github.repository }}:${tag} \
               --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
               bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip

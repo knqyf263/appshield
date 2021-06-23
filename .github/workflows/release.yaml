@@ -54,6 +54,7 @@ jobs:
               oras push ghcr.io/${{ github.repository }}:${tag} \
               --manifest-config /dev/null:application/vnd.cncf.openpolicyagent.config.v1+json \
               bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip
+          done
 
           # full version (e.g. 1.2.3)
           #          oras push ghcr.io/${{ github.repository }}:${{ env.RELEASE_VERSION }} \
